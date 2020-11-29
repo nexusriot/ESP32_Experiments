@@ -22,7 +22,8 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED)
   {
-    Serial.printf("WiFi Failed to initialize\n");
+    Serial.printf("WiFi not connected\n");
+    delay(500);
   }
   Serial.print("IP Addr: ");
   Serial.println(WiFi.localIP());
@@ -51,23 +52,40 @@ void setup() {
       });
 
   server.on("/get-query-param", HTTP_GET, [](AsyncWebServerRequest *request) {
-    // example with qqery param
-  StaticJsonDocument<100> data;
-  if (request->hasParam("query-param"))
-  {
-    data["query-param"] = request->getParam("query-param")->value();
+      // example with qqery param
+    StaticJsonDocument<100> data;
+    if (request->hasParam("query-param"))
+    {
+      data["query-param"] = request->getParam("query-param")->value();
+      String response;
+      serializeJson(data, response);
+      request->send(200, "application/json", response);
+    }
+    else {
+      data["query-param"] = "No query parameter";
+      String response;
+      serializeJson(data, response);
+      request->send(400, "application/json", response);
+    }
+  });
+
+  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/post-message", [](AsyncWebServerRequest *request, JsonVariant &json) {
+    StaticJsonDocument<200> data;
+    if (json.is<JsonArray>())
+    {
+      data = json.as<JsonArray>();
+    }
+    else if (json.is<JsonObject>())
+    {
+      data = json.as<JsonObject>();
+    }
     String response;
     serializeJson(data, response);
     request->send(200, "application/json", response);
-  }
-  else {
-    data["query-param"] = "No query parameter";
-    String response;
-    serializeJson(data, response);
-    request->send(400, "application/json", response);
-  }
+    Serial.println(response);
+  });
+  server.addHandler(handler);
 
-});
   server.onNotFound(notFound);
   server.begin();
 }
