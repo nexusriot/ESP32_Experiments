@@ -3,11 +3,12 @@
 #include <TFT_eSPI.h>
 #include "WiFi.h"
 
+
 TFT_eSPI tft = TFT_eSPI();
 
 void prepareScreen() {
   tft.fillScreen(TFT_BLACK);
-  tft.setCursor(0, 0, 4);
+  tft.setCursor(0, 0, 1);
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
 }
 
@@ -21,10 +22,11 @@ void setup() {
   tft.init();
   tft.setRotation(5);
   tft.setTextFont(1);
+  tft.setTextSize(1);
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   prepareScreen();
-  tft.println("Initializing...\n");
+  tft.println("Initializing...");
   delay(500);
 }
 
@@ -38,7 +40,7 @@ void loop() {
   }
   else {
   for (int i = 0; i < n; ++i){
-      printInfo(WiFi.BSSIDstr(i));
+      printInfo(WiFi.RSSI(i) + String(":")+ WiFi.SSID(i) + String(" (") + WiFi.BSSIDstr(i) + String(")"));
     }
   }
   delay(15000);
